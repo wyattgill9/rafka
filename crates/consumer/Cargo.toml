@@ -1,0 +1,9 @@
+[package]
+name = "consumer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = "0.1.83"
+my_core = { package = "core", path = "../core" }
+tokio = { version = "1.41.1", features = ["full"] }

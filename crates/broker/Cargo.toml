@@ -1,0 +1,14 @@
+[package]
+name = "broker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = "0.1.83"
+serde = { version = "1.0.215", features = ["derive"] }
+thiserror = "2.0.3"
+tokio = { version = "1.41.1", features = ["full"] }
+my_core = { package = "core", path = "../core" }
+storage = { package = "storage", path = "../storage" }
+dyn-clone = "1.0.17"
+as-any = "0.3.1"

@@ -1,0 +1,34 @@
+[package]
+name = "kafka-core-rs"
+version = "0.1.0"
+authors = ["yul5@cs.cmu.edu"]
+edition = "2021"
+
+description = "Realize basic kafka functionalities using rust. Educational purpose only and not intended for production"
+keywords = ["kafka", "message-queue", "infrastructure"]
+publish = false
+
+
+[workspace]
+
+resolver = "2"
+
+members = [
+    "crates/core",
+    "crates/broker",
+    "crates/producer",
+    "crates/consumer",
+    "crates/storage",
+    "crates/hooks",
+    "crates/utils",
+]
+
+[dependencies]
+tokio = { version = "1.41.1", features = ["full"] }
+my_core = { package = "core", path = "crates/core" }
+producer = { package = "producer", path = "crates/producer" }
+broker = { package = "broker", path = "crates/broker" }
+storage = { package = "storage", path = "crates/storage" }
+consumer = { package = "consumer", path = "crates/consumer" }
+chrono = "0.4.38"
+anyhow = "1.0.93"
