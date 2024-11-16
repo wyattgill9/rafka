@@ -156,4 +156,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Apache Kafka](https://kafka.apache.org) for inspiration on messaging systems.
 - [Tokio](https://tokio.rs) for asynchronous runtime support.
 - [RocksDB](https://rocksdb.org) for storage capabilities.
+- [@wyattgill9](https://github.com/wyattgill9) for the PoC.
 - The Rust community for their excellent libraries and support.
