@@ -12,6 +12,7 @@ where
     B: Broker + Send + Sync + 'static,
 {
     receiver: mpsc::Receiver<M>,
+    sender: mpsc::Sender<M>, // Add this line
     broker: Arc<B>,
     consumer_id: B::ConsumerId,
 }
@@ -31,6 +32,7 @@ where
 
         Ok(Self {
             receiver: rx,
+            sender: tx, // Add this line
             broker,
             consumer_id,
         })
