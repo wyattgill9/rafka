@@ -1,1 +1,0 @@
-# Database Partitioning & Logic Responsibilities -
