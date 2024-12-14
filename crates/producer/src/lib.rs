@@ -1,3 +1,2 @@
-pub mod simple_producer;
-
-pub use simple_producer::SimpleProducer;
+mod producer;
+pub use producer::Producer;

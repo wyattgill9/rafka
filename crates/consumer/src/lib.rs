@@ -1,1 +1,2 @@
-pub mod simple_consumer;
+pub mod consumer;
+pub use consumer::Consumer;

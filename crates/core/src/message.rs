@@ -1,27 +1,42 @@
-use std::fmt::Debug;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+use chrono::{DateTime, Utc};
 
-use as_any::AsAny;
-use dyn_clone::DynClone;
-
-/// Trait representing a message in the messaging system.
-///
-/// Implementors define how message data and metadata are accessed.
-/// The `Message` trait requires implementors to provide a payload and timestamp,
-/// and to be thread-safe (`Send + Sync`).
-pub trait Message: Send + Sync + DynClone + AsAny + Debug {
-    /// Returns a reference to the payload of the message.
-    ///
-    /// # Returns
-    ///
-    /// A byte slice representing the message's payload.
-    fn payload(&self) -> &[u8];
-
-    /// Returns the timestamp of the message.
-    ///
-    /// # Returns
-    ///
-    /// A `u64` representing the timestamp, typically in milliseconds since the epoch.
-    fn timestamp(&self) -> u64;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Message {
+    pub id: String,
+    pub topic: String,
+    pub payload: Vec<u8>,
+    pub timestamp: DateTime<Utc>,
 }
 
-dyn_clone::clone_trait_object!(Message);
+impl Message {
+    pub fn new(topic: String, payload: Vec<u8>) -> Self {
+        Self {
+            id: Uuid::new_v4().to_string(),
+            topic,
+            payload,
+            timestamp: Utc::now(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageAck {
+    pub message_id: String,
+    pub status: AckStatus,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AckStatus {
+    Success,
+    Error(String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BenchmarkMetrics {
+    pub message_id: String,
+    pub sent_at: DateTime<Utc>,
+    pub received_at: DateTime<Utc>,
+    pub latency_ms: i64,
+}
