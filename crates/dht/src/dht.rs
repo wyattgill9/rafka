@@ -101,20 +101,28 @@ impl DHTNode {
 // Example usage for brokers
 #[cfg(test)]
 mod tests {
+    use std::sync::Once;
     use super::*;
     use std::time::Duration;
     use tokio::time::timeout;
     use tracing::{info, error};
     use tracing_subscriber::EnvFilter;
 
+    static START: Once = Once::new();
+    fn init_logger() {
+        START.call_once(|| {
+            tracing_subscriber::fmt()
+                .with_env_filter(EnvFilter::from_default_env()
+                    .add_directive(tracing::Level::INFO.into())
+                    .add_directive("rafka_dht=debug".parse().unwrap()))
+                .init();
+        });
+    }
+
     #[tokio::test]
     async fn test_two_nodes_discovery() -> Result<(), Box<dyn Error>> {
         // Initialize tracing
-        tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env()
-            .add_directive(tracing::Level::INFO.into())
-            .add_directive("rafka_dht=debug".parse().unwrap()))
-        .init();
+        init_logger();
 
         // Create first node
         let (mut node1, mut events_rx1) = DHTNode::new().await?;
@@ -190,10 +198,8 @@ mod tests {
     }
     #[tokio::test]
     async fn test_mesh_network_discovery() -> Result<(), Box<dyn Error>> {
-        tracing_subscriber::fmt()
-            .with_env_filter(EnvFilter::from_default_env()
-                .add_directive(tracing::Level::DEBUG.into()))
-            .init();
+
+        init_logger();
 
         info!("Starting mesh network test");
         
