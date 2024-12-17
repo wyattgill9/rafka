@@ -18,6 +18,7 @@ path = "src/bin/start_broker.rs"
 [dependencies]
 rafka-broker = { path = "crates/broker" }
 rafka-core = { path = "crates/core" }
+rafka-dht = {path = "crates/dht"}
 rafka-producer = { path = "crates/producer" }
 rafka-consumer = { path = "crates/consumer" }
 rafka-storage = { path = "crates/storage" }
