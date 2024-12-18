@@ -63,7 +63,7 @@ impl DHTNode {
 
     pub async fn start(&mut self, addr: Option<Multiaddr>) -> Result<(), Box<dyn Error>> {
         // Listen on provided address or default
-        let listen_addr = addr.unwrap_or_else(|| "/ip4/0.0.0.0/tcp/0".parse().unwrap());
+        let listen_addr = addr.unwrap_or("/ip4/0.0.0.0/tcp/0".parse().unwrap());
         self.swarm.listen_on(listen_addr)?;
 
         loop {
