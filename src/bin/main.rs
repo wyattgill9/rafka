@@ -6,23 +6,21 @@ use rafka_producer::Producer;
 use rafka_storage::db::RetentionPolicy;
 use std::time::Duration;
 
-type DefaultResult = Result<(), Box<dyn std::error::Error>>;
+type Resulty = Result<(), Box<dyn std::error::Error>>;
 
 #[tokio::main]
-async fn main() -> DefaultResult {
+async fn main() -> Resulty {
     let command = CLI::get_parse();
-
-    println!("{:?}", command);
 
     match command {
         Commands::Metrics { port } => check_metrics(port).await,
+        Commands::Consumer { port, partition } => start_consumer(port, partition).await,
         Commands::Broker {
             port,
             partition,
             total_partition,
             retention_secs,
         } => start_broker(port, partition, total_partition, retention_secs).await,
-        Commands::Consumer { port, partition } => start_consumer(port, partition).await,
         Commands::Producer {
             brokers,
             key,
@@ -31,7 +29,7 @@ async fn main() -> DefaultResult {
     }
 }
 
-async fn check_metrics(port: u16) -> DefaultResult {
+async fn check_metrics(port: u16) -> Resulty {
     let mut client = BrokerServiceClient::connect(format!("http://127.0.0.1:{}", port)).await?;
 
     // Get metrics
@@ -54,7 +52,7 @@ async fn start_broker(
     partition: u32,
     total_partition: u32,
     retention_secs: u64,
-) -> DefaultResult {
+) -> Resulty {
     let retention_policy = RetentionPolicy {
         max_age: Duration::from_secs(retention_secs),
         max_bytes: 1024 * 1024 * 1024, // 1GB default
@@ -70,7 +68,7 @@ async fn start_broker(
     Ok(())
 }
 
-async fn start_consumer(port: u16, partition: u32) -> DefaultResult {
+async fn start_consumer(port: u16, partition: u32) -> Resulty {
     let mut consumer = Consumer::new(&format!("127.0.0.1:{}", port)).await?;
 
     consumer.subscribe("greetings".to_string()).await?;
@@ -89,7 +87,7 @@ async fn start_consumer(port: u16, partition: u32) -> DefaultResult {
     Ok(())
 }
 
-async fn start_producer(brokers: Vec<String>, message: String, key: String) -> DefaultResult {
+async fn start_producer(brokers: Vec<String>, message: String, key: String) -> Resulty {
     println!(
         "Publishing to 'greetings' topic with key '{}': {}",
         key, message
