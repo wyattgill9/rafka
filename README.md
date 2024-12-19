@@ -1,6 +1,6 @@
 # Rafka
 
-  Rafka is a blazing-fast, experimental distributed asynchronous message broker written in Rust. Inspired by Apache Kafka, it stands out with its peer-to-peer mesh architecture and custom in-memory database for unparalleled scalability and low-latency performance. Leveraging a P2P mesh inspired by Pastry and Chord, Rafka ensures hyper-scalability and efficient message routing. Each broker node features a built-in in-memory "sidecar" database for storing frequently accessed data, minimizing storage trips and optimizing responses for repetitive queries. Metadata management uses a distributed hash table (DHT) model for fault tolerance and seamless coordination. Designed for Kubernetes-native deployment, Rafka dynamically scales, avoids single points of failure, and excels in modern distributed environments.
+Rafka is a blazing-fast, experimental distributed asynchronous message broker written in Rust. Inspired by Apache Kafka, it stands out with its peer-to-peer mesh architecture and custom in-memory database for unparalleled scalability and low-latency performance. Leveraging a P2P mesh inspired by Pastry and Chord, Rafka ensures hyper-scalability and efficient message routing. Each broker node features a built-in in-memory "sidecar" database for storing frequently accessed data, minimizing storage trips and optimizing responses for repetitive queries. Metadata management uses a distributed hash table (DHT) model for fault tolerance and seamless coordination. Designed for Kubernetes-native deployment, Rafka dynamically scales, avoids single points of failure, and excels in modern distributed environments.
 
 ### Current Status: Early Development
 
@@ -121,16 +121,18 @@ The `storage` crate provides implementations of storage engines:
 
 #### Phase 1: Core Foundation
 1. **Basic P2P Communication**
-   - [ ] Implement node-to-node communication
+   - [ ] Implement node-to-node communication (current xenofax)
    - [ ] Set up gRPC server and client
    - [x] Create basic message structures
-   - [ ] Implement simple node discovery
+   - [ ] Implement simple node discovery (current xenofax)
 
 2. **Message Handling**
    - [ ] Develop asynchronous message queue
    - [x] Implement basic producer/consumer logic
    - [x] Create basic message storage functionality
    - [ ] Set up error handling
+3. **Other**
+   - [ ] Basic CLI (current raoni)
 
 #### Phase 2: Distributed Systems
 1. **Consensus & Coordination**
