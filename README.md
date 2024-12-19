@@ -121,10 +121,10 @@ The `storage` crate provides implementations of storage engines:
 
 #### Phase 1: Core Foundation
 1. **Basic P2P Communication**
-   - [ ] Implement node-to-node communication (current xenofax)
-   - [ ] Set up gRPC server and client
+   - [ ] Implement node-to-node communication **(current xenofax)**
+   - [x] Set up gRPC server and client **(Basic [x] , Advanced [ ]) (current raiinyzen)**
    - [x] Create basic message structures
-   - [ ] Implement simple node discovery (current xenofax)
+   - [ ] Implement simple node discovery **(current xenofax)**
 
 2. **Message Handling**
    - [ ] Develop asynchronous message queue
@@ -132,7 +132,7 @@ The `storage` crate provides implementations of storage engines:
    - [x] Create basic message storage functionality
    - [ ] Set up error handling
 3. **Other**
-   - [ ] Basic CLI (current raoni)
+   - [ ] Basic CLI **(current raoni)**
 
 #### Phase 2: Distributed Systems
 1. **Consensus & Coordination**
