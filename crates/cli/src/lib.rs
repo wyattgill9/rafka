@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(name = "Rafka", about = "Rafka, an async distributed message queue written in rust ",version, about, long_about = None)]
 pub struct CLI {
     #[command(subcommand)]
     pub command: Commands,
@@ -9,6 +9,7 @@ pub struct CLI {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    /// Start the message broker
     Broker {
         #[arg(short, long, default_value = "50051")]
         port: u16,
@@ -22,6 +23,8 @@ pub enum Commands {
         #[arg(short, long, default_value = "1")]
         retention_secs: u64,
     },
+
+    /// Start a consumer for the message broker
     Consumer {
         #[arg(short, long, default_value = "50051")]
         port: u16,
@@ -29,6 +32,8 @@ pub enum Commands {
         #[arg(long, default_value = "0")]
         partition: u32,
     },
+
+    /// Produces messages for a list of brokers
     Producer {
         #[arg(short, long, default_value = "127.0.0.1:50051")]
         brokers: Vec<String>,
@@ -39,6 +44,8 @@ pub enum Commands {
         #[arg(short, long, default_value = "default-key")]
         key: String,
     },
+
+    /// Get the metrics of the system
     Metrics {
         #[arg(short, long, default_value = "50051")]
         port: u16,
