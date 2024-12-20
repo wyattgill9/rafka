@@ -23,7 +23,7 @@ mod module {
         ];
         const KEYS: [&str; 6] = ["key-0", "key-1", "key-2", "key-3", "key-4", "key-5"];
 
-        let _ = task::spawn(async { setup_brokers(1).await });
+        let _ = task::spawn(async { setup_brokers(1, 1).await });
 
         sleep(Duration::from_millis(50)).await;
 

@@ -28,7 +28,7 @@ mod module {
             "Message-9",
         ];
 
-        let _ = task::spawn(async { setup_brokers(BROKER_COUNT).await });
+        let _ = task::spawn(async { setup_brokers(BROKER_COUNT, 1).await });
 
         sleep(Duration::from_millis(50)).await;
 

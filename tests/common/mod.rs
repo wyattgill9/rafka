@@ -1,19 +1,21 @@
+#![allow(dead_code)]
+
 use std::time::Duration;
 
 use rafka_broker::Broker;
 use rafka_storage::db::RetentionPolicy;
 use tokio::task;
 
-pub const DEFAULT_ADDRESS: &str = "127.0.0.1:50051";
 pub const PORT: usize = 50051;
 pub const PARTITION: usize = 0;
 pub const TOTAL_PARTITIONS: usize = 1;
+pub const DEFAULT_ADDRESS: &str = "127.0.0.1:50051";
 
 const ONE_GB: usize = 1024 * 1024 * 1024;
 
-pub async fn setup_brokers(number_of_brokers: usize) {
+pub async fn setup_brokers(number_of_brokers: usize, retention_secs: usize) {
     let retention_policy = RetentionPolicy {
-        max_age: Duration::from_secs(1),
+        max_age: Duration::from_secs(retention_secs as u64),
         max_bytes: ONE_GB,
     };
 
