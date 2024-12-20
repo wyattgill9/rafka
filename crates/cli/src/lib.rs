@@ -46,6 +46,7 @@ pub enum Commands {
 }
 
 impl CLI {
+    // This exists to main code doesnt need to import clap
     pub fn get_parse() -> Commands {
         CLI::parse().command
     }
