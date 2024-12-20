@@ -5,21 +5,20 @@ echo "Starting Rafka storage demo..."
 
 # Start broker
 echo "Starting broker..."
-cargo run --bin start_broker -- --port 50051 &
+cargo run broker &
 BROKER_PID=$!
 sleep 2
 
 # Start first consumer
 echo "Starting first consumer..."
-cargo run --bin start_consumer -- --port 50051 &
+cargo run consumer &
 CONSUMER1_PID=$!
 sleep 2
 
 # Send initial messages
 echo "Sending initial messages..."
 for i in {1..5}; do
-    cargo run --bin start_producer -- \
-        --port 50051 \
+    cargo run producer \
         --message "Message $i" \
         --key "key-$i"
     sleep 1
@@ -31,15 +30,14 @@ kill $CONSUMER1_PID
 sleep 2
 
 echo "Starting second consumer..."
-cargo run --bin start_consumer -- --port 50051 &
+cargo run consumer &
 CONSUMER2_PID=$!
 sleep 2
 
 # Send more messages
 echo "Sending additional messages..."
 for i in {6..10}; do
-    cargo run --bin start_producer -- \
-        --port 50051 \
+    cargo run producer \
         --message "Message $i" \
         --key "key-$i"
     sleep 1
@@ -47,7 +45,5 @@ done
 
 # Clean up
 kill $BROKER_PID $CONSUMER2_PID
-wait
-./scripts/kill.sh
 
 echo "Storage demo completed" 
