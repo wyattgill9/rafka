@@ -5,19 +5,19 @@ echo "Starting Rafka demo..."
 
 # Start broker
 echo "Starting broker..."
-cargo run broker &
+cargo run -q broker &
 BROKER_PID=$!
 sleep 2
 
 # Start consumer
 echo "Starting consumer..."
-cargo run consumer &
+cargo run -q consumer &
 CONSUMER_PID=$!
 sleep 2
 
 # Run producer
 echo "Sending message..."
-cargo run producer --message "Hello, World!"
+cargo run -q producer --message "Hello, World!"
 sleep 1
 
 # Clean up

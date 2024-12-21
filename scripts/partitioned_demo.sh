@@ -17,7 +17,7 @@ BROKER_PIDS=()
 for ((i=0; i<BROKER_COUNT; i++)); do
     PORT=$((BASE_PORT + i))
     echo "Starting broker $i on port $PORT..."
-    cargo run broker --port $PORT &
+    cargo run -q broker --port $PORT &
     BROKER_PIDS+=($!)
     sleep 2
 done
@@ -27,7 +27,7 @@ CONSUMER_PIDS=()
 for ((i=0; i<BROKER_COUNT; i++)); do
     PORT=$((BASE_PORT + i))
     echo "Starting consumer $i on port $PORT..."
-    cargo run consumer --port $PORT --partition $i &
+    cargo run -q consumer --port $PORT --partition $i &
     CONSUMER_PIDS+=($!)
     sleep 2
 done
@@ -41,7 +41,7 @@ for ((i=0; i<MESSAGE_COUNT; i++)); do
     MESSAGE="Message-$i"
     BROKER_ADDRESS="127.0.0.1:$PORT"
     echo "Sending '$MESSAGE' to partition $PARTITION (port $PORT)"
-    cargo run producer --brokers $BROKER_ADDRESS --message "$MESSAGE"
+    cargo run -q producer --brokers $BROKER_ADDRESS --message "$MESSAGE"
     sleep 1
 done
 

@@ -5,20 +5,20 @@ echo "Starting Rafka offset tracking demo..."
 
 # Start broker
 echo "Starting broker..."
-cargo run broker &
+cargo run -q broker  &
 BROKER_PID=$!
 sleep 2
 
 # Start first consumer
 echo "Starting first consumer..."
-cargo run consumer &
+cargo run -q consumer &
 CONSUMER1_PID=$!
 sleep 2
 
 # Send initial batch of messages
 echo "Sending first batch of messages..."
 for i in {1..3}; do
-    cargo run producer \
+    cargo run -q producer \
         --message "Batch1-Message$i" \
         --key "key-$i"
     sleep 1
@@ -33,14 +33,14 @@ kill $CONSUMER1_PID
 sleep 2
 
 echo "Starting second consumer with same ID..."
-cargo run consumer &
+cargo run -q consumer &
 CONSUMER2_PID=$!
 sleep 2
 
 # Send second batch of messages
 echo "Sending second batch of messages..."
 for i in {4..6}; do
-    cargo run producer \
+    cargo run -q producer \
         --message "Batch2-Message$i" \
         --key "key-$i"
     sleep 1
