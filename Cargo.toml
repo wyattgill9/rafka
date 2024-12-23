@@ -2,6 +2,7 @@
 name = "rafka"
 version = "0.1.0"
 edition = "2021"
+default-run = "main"
 
 [[bin]]
 name = "start_producer"
@@ -15,6 +16,10 @@ path = "src/bin/start_consumer.rs"
 name = "start_broker"
 path = "src/bin/start_broker.rs"
 
+[[bin]]
+name = "main"
+path = "src/bin/main.rs"
+
 [dependencies]
 rafka-broker = { path = "crates/broker" }
 rafka-core = { path = "crates/core" }
@@ -22,6 +27,7 @@ rafka-dht = {path = "crates/dht"}
 rafka-producer = { path = "crates/producer" }
 rafka-consumer = { path = "crates/consumer" }
 rafka-storage = { path = "crates/storage" }
+rafka-cli = { path = "crates/cli" }
 
 tokio = { version = "1.0", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
@@ -32,7 +38,8 @@ members = [
     "crates/core",
     "crates/producer",
     "crates/consumer",
-    "crates/storage"
+    "crates/storage", 
+    "crates/cli"
 ]
 
 
