@@ -1,9 +1,9 @@
-use tokio::net::TcpStream;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::sync::mpsc;
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
+use tokio::sync::mpsc;
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 enum BrokerMessage {
@@ -49,7 +49,7 @@ impl Consumer {
     pub async fn new(addr: &str) -> Result<Self, Box<dyn Error>> {
         let stream = TcpStream::connect(addr).await?;
         let consumer_id = Uuid::new_v4().to_string();
-        
+
         let mut consumer = Self {
             stream,
             consumer_id,
@@ -61,10 +61,10 @@ impl Consumer {
             client_id: consumer.consumer_id.clone(),
             client_type: "consumer".to_string(),
         };
-        
+
         consumer.send_message(&register_msg).await?;
         let _response = consumer.read_response().await?;
-        
+
         println!("Consumer registered with ID: {}", consumer.consumer_id);
         Ok(consumer)
     }
@@ -87,10 +87,10 @@ impl Consumer {
             consumer_id: self.consumer_id.clone(),
             topic,
         };
-        
+
         self.send_message(&subscribe_msg).await?;
         let response = self.read_response().await?;
-        
+
         if response == "Subscribed successfully" {
             Ok(())
         } else {
@@ -98,50 +98,57 @@ impl Consumer {
         }
     }
 
-    pub async fn consume(&mut self, topic: String) -> Result<mpsc::Receiver<Vec<u8>>, Box<dyn Error>> {
+    pub async fn consume(
+        &mut self,
+        topic: String,
+    ) -> Result<mpsc::Receiver<Vec<u8>>, Box<dyn Error>> {
         let (tx, rx) = mpsc::channel(100);
-        
+
         // Create a new connection for consuming messages
-        let mut consume_stream = self.stream.try_clone().await?;
-        
+        let std_socket = self.stream.into_std()?;
+
         // Send consume request
         let consume_msg = BrokerMessage::Consume {
             consumer_id: self.consumer_id.clone(),
         };
-        
+
         self.send_message(&consume_msg).await?;
 
         // Spawn a task to continuously read messages
         let consumer_id = self.consumer_id.clone();
         let topic_clone = topic.clone();
-        
+
         tokio::spawn(async move {
             let mut buffer = vec![0; 1024 * 64]; // 64KB buffer
-            
+            let mut consume_stream = TcpStream::from_std(std_socket.try_clone().unwrap()).unwrap();
+
             loop {
                 match consume_stream.read(&mut buffer).await {
                     Ok(n) if n > 0 => {
-                        if let Ok(message) = serde_json::from_slice::<ConsumeResponse>(&buffer[..n]) {
+                        if let Ok(message) = serde_json::from_slice::<ConsumeResponse>(&buffer[..n])
+                        {
                             // Send the message payload to the channel
                             if tx.send(message.payload).await.is_err() {
                                 break;
                             }
-                            
+
                             // Send offset update
-                            if let Ok(mut update_stream) = consume_stream.try_clone().await {
+                            if let Ok(mut update_stream) =
+                                TcpStream::from_std(std_socket.try_clone().unwrap())
+                            {
                                 let update_msg = BrokerMessage::UpdateOffset {
                                     consumer_id: consumer_id.clone(),
                                     topic: topic_clone.clone(),
                                     offset: message.offset,
                                 };
-                                
+
                                 if let Ok(msg_bytes) = serde_json::to_vec(&update_msg) {
                                     let _ = update_stream.write_all(&msg_bytes).await;
                                 }
                             }
                         }
                     }
-                    Ok(0) => break, // Connection closed
+                    Ok(0) => break,  // Connection closed
                     Err(_) => break, // Error occurred
                     _ => continue,
                 }
@@ -151,16 +158,20 @@ impl Consumer {
         Ok(rx)
     }
 
-    pub async fn update_offset(&mut self, topic: String, offset: i64) -> Result<(), Box<dyn Error>> {
+    pub async fn update_offset(
+        &mut self,
+        topic: String,
+        offset: i64,
+    ) -> Result<(), Box<dyn Error>> {
         let update_msg = BrokerMessage::UpdateOffset {
             consumer_id: self.consumer_id.clone(),
             topic,
             offset,
         };
-        
+
         self.send_message(&update_msg).await?;
         let response = self.read_response().await?;
-        
+
         if response.contains("Offset updated") {
             self.current_offset = offset;
             Ok(())

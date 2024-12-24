@@ -1,12 +1,12 @@
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
-use tokio::sync::{broadcast, RwLock};
-use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use serde::{Serialize, Deserialize};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
+use tokio::sync::{broadcast, RwLock};
 use uuid::Uuid;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
 
 // Message types to replace gRPC messages
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -57,7 +57,7 @@ pub struct Broker {
 impl Broker {
     pub fn new(partition_id: u32, total_partitions: u32) -> Self {
         const BROADCAST_CAPACITY: usize = 1024 * 16;
-        
+
         Self {
             topics: Arc::new(RwLock::new(HashMap::new())),
             messages: Arc::new(RwLock::new(HashMap::new())),
@@ -77,17 +77,22 @@ impl Broker {
 
         loop {
             let n = socket.read(&mut buffer).await?;
+
             if n == 0 {
-                break; // Connection closed
+                break;
             }
 
             let message: BrokerMessage = serde_json::from_slice(&buffer[..n])?;
-            
+
             match message {
-                BrokerMessage::Publish { key, topic, payload } => {
+                BrokerMessage::Publish {
+                    key,
+                    topic,
+                    payload,
+                } => {
                     if !broker.owns_partition(&key) {
                         let error = format!(
-                            "Message belongs to partition {} not {}", 
+                            "Message belongs to partition {} not {}",
                             broker.hash_key(&key) % broker.total_partitions,
                             broker.partition_id
                         );
@@ -96,7 +101,7 @@ impl Broker {
                     }
 
                     broker.ensure_topic(&topic).await;
-                    
+
                     let message_id = Uuid::new_v4().to_string();
                     let offset = broker.message_counter.fetch_add(1, Ordering::SeqCst) as i64;
 
@@ -116,14 +121,16 @@ impl Broker {
                         eprintln!("Failed to broadcast message: {}", e);
                     }
 
-                    let success = format!("Published to partition {} with offset {}", 
-                        broker.partition_id, offset);
+                    let success = format!(
+                        "Published to partition {} with offset {}",
+                        broker.partition_id, offset
+                    );
                     socket.write_all(success.as_bytes()).await?;
                 }
 
                 BrokerMessage::Subscribe { consumer_id, topic } => {
                     broker.ensure_topic(&topic).await;
-                    
+
                     let mut topics = broker.topics.write().await;
                     topics
                         .entry(topic.clone())
@@ -138,19 +145,29 @@ impl Broker {
                     let mut rx = sender.subscribe();
 
                     // Spawn a task to handle this consumer
-                    let mut socket = socket.try_clone().await?;
+                    let std_socket: std::net::TcpStream = socket.into_std()?;
+                    socket = TcpStream::from_std(std_socket.try_clone()?)?;
+
                     tokio::spawn(async move {
                         while let Ok(msg) = rx.recv().await {
                             if let Ok(data) = serde_json::to_vec(&msg) {
-                                if socket.write_all(&data).await.is_err() {
+                                let mut tokio_clone = TcpStream::from_std(std_socket.try_clone()?)?;
+
+                                if tokio_clone.write_all(&data).await.is_err() {
                                     break;
                                 }
                             }
                         }
+
+                        Ok::<(), std::io::Error>(())
                     });
                 }
 
-                BrokerMessage::UpdateOffset { consumer_id, topic, offset } => {
+                BrokerMessage::UpdateOffset {
+                    consumer_id,
+                    topic,
+                    offset,
+                } => {
                     if offset < 0 {
                         socket.write_all(b"Offset cannot be negative").await?;
                         continue;
@@ -162,8 +179,12 @@ impl Broker {
                         continue;
                     }
 
-                    broker.set_consumer_offset(&consumer_id, &topic, offset).await;
-                    socket.write_all(format!("Offset updated to {}", offset).as_bytes()).await?;
+                    broker
+                        .set_consumer_offset(&consumer_id, &topic, offset)
+                        .await;
+                    socket
+                        .write_all(format!("Offset updated to {}", offset).as_bytes())
+                        .await?;
                 }
 
                 _ => {
@@ -176,7 +197,6 @@ impl Broker {
     }
 
     pub async fn serve(self, addr: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let addr = addr.parse()?;
         let listener = TcpListener::bind(addr).await?;
         println!("Broker listening on {}", addr);
 
@@ -185,7 +205,7 @@ impl Broker {
         loop {
             let (socket, _) = listener.accept().await?;
             let broker = broker.clone();
-            
+
             tokio::spawn(async move {
                 if let Err(e) = Self::handle_client(broker, socket).await {
                     eprintln!("Error handling client: {}", e);
@@ -201,7 +221,7 @@ impl Broker {
                 return sender.clone();
             }
         }
-        
+
         let (new_tx, _) = broadcast::channel(self.broadcast_capacity);
         channels.insert(partition_id, new_tx.clone());
         new_tx
