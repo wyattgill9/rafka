@@ -1,7 +1,6 @@
 use rafka_broker::Broker;
 use rafka_cli::{Commands, CLI};
 use rafka_consumer::Consumer;
-use rafka_core::proto::rafka::{broker_service_client::BrokerServiceClient, GetMetricsRequest};
 use rafka_producer::Producer;
 use rafka_storage::db::RetentionPolicy;
 use std::time::Duration;
@@ -13,7 +12,6 @@ async fn main() -> Resulty {
     let command = CLI::get_parse();
 
     match command {
-        Commands::Metrics { port } => check_metrics(port).await,
         Commands::Consumer { port, partition } => start_consumer(port, partition).await,
         Commands::Broker {
             port,
@@ -25,26 +23,9 @@ async fn main() -> Resulty {
             brokers,
             key,
             message,
-        } => start_producer(brokers, message, key).await,
+            topic,
+        } => start_producer(brokers, message, key, topic).await,
     }
-}
-
-async fn check_metrics(port: u16) -> Resulty {
-    let mut client = BrokerServiceClient::connect(format!("http://127.0.0.1:{}", port)).await?;
-
-    // Get metrics
-    let response = client.get_metrics(GetMetricsRequest {}).await?;
-
-    let metrics = response.into_inner();
-    println!("Storage Metrics:");
-    println!("Total Messages: {}", metrics.total_messages);
-    println!("Total Size: {} bytes", metrics.total_bytes);
-    println!(
-        "Oldest Message Age: {} seconds",
-        metrics.oldest_message_age_secs
-    );
-
-    Ok(())
 }
 
 async fn start_broker(
@@ -63,7 +44,7 @@ async fn start_broker(
         port, partition, total_partition
     );
 
-    let broker = Broker::new(partition, total_partition, Some(retention_policy));
+    let broker = Broker::new(partition, total_partition);
     broker.serve(&format!("127.0.0.1:{}", port)).await?;
     Ok(())
 }
@@ -87,7 +68,12 @@ async fn start_consumer(port: u16, partition: u32) -> Resulty {
     Ok(())
 }
 
-async fn start_producer(brokers: Vec<String>, message: String, key: String) -> Resulty {
+async fn start_producer(
+    brokers: Vec<String>,
+    message: String,
+    key: String,
+    topic: String,
+) -> Resulty {
     println!(
         "Publishing to 'greetings' topic with key '{}': {}",
         key, message
