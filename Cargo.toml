@@ -5,18 +5,6 @@ edition = "2021"
 default-run = "main"
 
 [[bin]]
-name = "start_producer"
-path = "src/bin/start_producer.rs"
-
-[[bin]]
-name = "start_consumer"
-path = "src/bin/start_consumer.rs"
-
-[[bin]]
-name = "start_broker"
-path = "src/bin/start_broker.rs"
-
-[[bin]]
 name = "main"
 path = "src/bin/main.rs"
 

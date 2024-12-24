@@ -38,17 +38,14 @@ pub enum Commands {
         #[arg(short, long, default_value = "127.0.0.1:50051")]
         brokers: Vec<String>,
 
-        #[arg(short, long, default_value = "Hello, world!")]
-        message: String,
-
         #[arg(short, long, default_value = "default-key")]
         key: String,
-    },
 
-    /// Get the metrics of the system
-    Metrics {
-        #[arg(short, long, default_value = "50051")]
-        port: u16,
+        #[arg(short, long, default_value = "greetings")]
+        topic: String,
+
+        #[arg(short, long, default_value = "Hello, world!")]
+        message: String,
     },
 }
 
