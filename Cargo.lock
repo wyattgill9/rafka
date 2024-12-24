@@ -2737,7 +2737,6 @@ dependencies = [
  "rafka-storage",
  "tokio",
  "tokio-stream",
- "tonic",
  "tracing",
  "uuid",
 ]
