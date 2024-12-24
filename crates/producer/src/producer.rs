@@ -1,7 +1,7 @@
-use tokio::net::TcpStream;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::error::Error;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -26,7 +26,7 @@ impl Producer {
     pub async fn new(addr: &str) -> Result<Self, Box<dyn Error>> {
         let stream = TcpStream::connect(addr).await?;
         let producer_id = Uuid::new_v4().to_string();
-        
+
         let mut producer = Self {
             stream,
             producer_id,
@@ -37,13 +37,13 @@ impl Producer {
             client_id: producer.producer_id.clone(),
             client_type: "producer".to_string(),
         };
-        
+
         producer.send_message(&register_msg).await?;
         let response = producer.read_response().await?;
-        
+
         println!("Producer registered with ID: {}", producer.producer_id);
         println!("Registration response: {}", response);
-        
+
         Ok(producer)
     }
 
@@ -74,7 +74,7 @@ impl Producer {
 
         self.send_message(&publish_msg).await?;
         let response = self.read_response().await?;
-        
+
         println!("Response from broker: {}", response);
         Ok(())
     }
@@ -86,7 +86,7 @@ impl Producer {
         messages: Vec<(String, String)>, // (key, message) pairs
     ) -> Result<Vec<String>, Box<dyn Error>> {
         let mut responses = Vec::new();
-        
+
         for (key, message) in messages {
             let publish_msg = BrokerMessage::Publish {
                 key,
@@ -98,13 +98,16 @@ impl Producer {
             let response = self.read_response().await?;
             responses.push(response);
         }
-        
+
         Ok(responses)
     }
 
     // Get a new stream for parallel publishing if needed
-    pub async fn clone_connection(&self) -> Result<Self, Box<dyn Error>> {
-        let stream = self.stream.try_clone().await?;
+    pub async fn clone_connection(&mut self) -> Result<Self, Box<dyn Error>> {
+        let std_socket = self.stream.into_std()?;
+        self.stream = TcpStream::from_std(std_socket.try_clone()?)?;
+        let stream = TcpStream::from_std(std_socket.try_clone()?)?;
+
         Ok(Self {
             stream,
             producer_id: self.producer_id.clone(),

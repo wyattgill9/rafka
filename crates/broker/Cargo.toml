@@ -15,3 +15,5 @@ chrono = { version = "0.4", features = ["serde"] }
 prost-types = "0.13.4"
 rafka-storage = { path = "../storage" }
 bytes = "1.4"
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+serde = { version = "1.0.216", features = ["derive"] }
